@@ -1,0 +1,82 @@
+		CREATE DATABASE telecom;
+		USE telecom;
+
+		-- CRIAÇAO DAS TABELAS NO BANCO DE DADOS telecom -- 
+
+		CREATE TABLE estacoes(
+		id_estacao INT PRIMARY KEY,
+		nome_estacao VARCHAR(15) NOT NULL UNIQUE,
+		endereco_estacao VARCHAR(45) NOT NULL
+		);
+
+		CREATE TABLE topologia_enlace(
+		id_enlace INT PRIMARY KEY,
+		ponta_a VARCHAR(15) NOT NULL,
+		ponta_b VARCHAR(15) NOT NULL,
+		ponta_a_b VARCHAR(31) NOT NULL,
+		id_grupoenlace INT NOT NULL,
+		timeroute TIME NOT NULL,
+		latitude DECIMAL (10,8),
+		longitude DECIMAL(10,8)
+		);
+
+		CREATE TABLE grupo_enlace(
+		idgrupo INT PRIMARY KEY,
+		nome_grupo VARCHAR(30) NOT NULL,
+		id_gerente INT NOT NULL
+		);
+
+		CREATE TABLE gerente(
+		id_gerente INT PRIMARY KEY,
+		nome_gerente VARCHAR(30) NOT NULL,
+		email_gerente VARCHAR(45) NOT NULL,
+		telefone_gerente CHAR(9) NOT NULL
+		);
+
+		CREATE TABLE tecnico(
+		id_tecnico INT PRIMARY KEY,
+		nome_tecnico VARCHAR(45) NOT NULL,
+		area_tecnica ENUM('Fibra', 'Infra') NOT NULL,
+		lotacao_tecnico VARCHAR(30) NOT NULL,
+		email_tecnico VARCHAR(45) NOT NULL,
+		telefone_tecnico CHAR(9) NOT NULL,
+		id_gerente INT NOT NULL
+		);
+
+		CREATE TABLE falha_tecnico(
+		id_falha INT NOT NULL,
+		id_tecnico INT NOT NULL
+		);
+
+		CREATE TABLE falha(
+		id_falha INT PRIMARY KEY NOT NULL,
+		area_tecnica ENUM('Fibra', 'Infra') NOT NULL,
+		desc_falha ENUM('Rompimento de Fibra', 'Atenuação de Fibra', 'Falta de Energia', 'Falha de Equipamento') NOT NULL,
+		causa_falha VARCHAR(30),
+		hora_falha DATETIME NOT NULL,
+		hora_solucao DATETIME,
+		status_falha ENUM('Esteira', 'Atendimento', 'Concluído'),
+		id_estacao INT,
+		id_enlace INT
+		);
+
+		-- DEFININDO CONSTRAINTS DE CHAVES ESTRANGEIRAS --
+
+		ALTER TABLE topologia_enlace
+		ADD CONSTRAINT fk_grupo_enlace FOREIGN KEY (id_grupoenlace) REFERENCES grupo_enlace(idgrupo);
+
+		ALTER TABLE grupo_enlace
+		ADD CONSTRAINT fk_gerente_grupoenlace FOREIGN KEY (id_gerente) REFERENCES gerente(id_gerente);
+
+		ALTER TABLE tecnico
+		ADD CONSTRAINT fk_gerente_tecnico FOREIGN KEY (id_gerente) REFERENCES gerente(id_gerente);
+
+		ALTER TABLE falha_tecnico
+		ADD CONSTRAINT fk_idfalha FOREIGN KEY (id_falha) REFERENCES falha(id_falha);
+
+		ALTER TABLE falha_tecnico
+		ADD CONSTRAINT fk_tecnico FOREIGN KEY (id_tecnico) REFERENCES tecnico(id_tecnico);
+
+		select * from estacoes;
+
+
