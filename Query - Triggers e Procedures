@@ -1,5 +1,5 @@
 		USE telecom;
-	select * from falha;
+		
 -- CRIANDO TRIGGER PARA ATUALIZAÇÃO AUTOMÁTICA DA COLUNA hora_solucao QUANDO O status_falha FOR ALTERADO PARA 'CONCLUÍDO'
 
 		DELIMITER //
@@ -16,34 +16,29 @@
         
  -- CRIANDO PROCEDURES PARA INSERT DE FALHA EM TABELAS falha E falha_tecnico --
  
+		 DELIMITER //
+		 CREATE PROCEDURE nova_falha(
+		 IN NEWarea_tecnica ENUM('Fibra', 'Infra'),
+		 IN NEWdesc_falha VARCHAR(30),
+		 IN NEWid_estacao INT,
+		 IN NEWid_enlace INT)
+		 BEGIN 
+		 DECLARE erro_sql TINYINT DEFAULT FALSE;
+		 DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET erro_sql = TRUE;
+		 START TRANSACTION;
+			set @increment_falha = (select max(id_falha)+1 from falha);
+			INSERT INTO falha(id_falha, area_tecnica, desc_falha, causa_falha, hora_falha, hora_solucao, status_falha, id_estacao, id_enlace)
+			VALUES (@increment_falha, NEWarea_tecnica, NEWdesc_falha, null, NOW(), null, null, NEWid_estacao, NEWid_enlace);
+		IF erro_sql = FALSE THEN COMMIT; 
+		SELECT 'Inserção de dados realizada com sucesso' AS 'RESULTADO';
+		ELSE
+			ROLLBACK;
+			SELECT 'Erro na inserção de dados' as 'RESULTADO';
+		END IF;
+		END //
+		DELIMITER ;
 
- 
- 
- drop procedure nova_falha;
- 
- DELIMITER //
- CREATE PROCEDURE nova_falha(
- IN NEWarea_tecnica ENUM('Fibra', 'Infra'),
- IN NEWdesc_falha VARCHAR(30),
- IN NEWid_estacao INT,
- IN NEWid_enlace INT)
- BEGIN 
- DECLARE erro_sql TINYINT DEFAULT FALSE;
- DECLARE CONTINUE HANDLER FOR SQLEXCEPTION SET erro_sql = TRUE;
- START TRANSACTION;
-	set @increment_falha = (select max(id_falha)+1 from falha);
-	INSERT INTO falha(id_falha, area_tecnica, desc_falha, causa_falha, hora_falha, hora_solucao, status_falha, id_estacao, id_enlace)
-	VALUES (@increment_falha, NEWarea_tecnica, NEWdesc_falha, null, NOW(), null, null, NEWid_estacao, NEWid_enlace);
-IF erro_sql = FALSE THEN COMMIT; 
-SELECT 'Inserção de dados realizada com sucesso' AS 'RESULTADO';
-ELSE
-	ROLLBACK;
-	SELECT 'Erro na inserção de dados' as 'RESULTADO';
-END IF;
-END //
-DELIMITER ;
-
-CALL nova_falha('Infra', 'Falha de Bateria', 7, null);
+		CALL nova_falha('Infra', 'Falha de Bateria', 7, null);
 
 -- CRIANDO UMA LINHA DA FALHA NA TABELA falha_tecnico COM TRIGGER --
 
@@ -58,6 +53,6 @@ CALL nova_falha('Infra', 'Falha de Bateria', 7, null);
 		DELIMITER ;
 
 -- EXCLUINDO LINHAS DAS DUAS TABELAS ATRAVÉS DA CHAVE ESTRANGEIRA -- 
-ALTER TABLE falha_tecnico
-ADD CONSTRAINT fk_idfalha FOREIGN KEY (id_falha) REFERENCES falha(id_falha)
-ON DELETE CASCADE;
+		ALTER TABLE falha_tecnico
+		ADD CONSTRAINT fk_idfalha FOREIGN KEY (id_falha) REFERENCES falha(id_falha)
+		ON DELETE CASCADE;
